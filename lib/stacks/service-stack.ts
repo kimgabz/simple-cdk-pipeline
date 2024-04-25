@@ -4,10 +4,14 @@ import { CfnParametersCode, Code, Function, Runtime } from 'aws-cdk-lib/aws-lamb
 import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations'
 import { Construct } from 'constructs';
 
+interface ServiceStackProps extends StackProps {
+  stageName: string;
+}
+
 export class ServiceStack extends Stack {
   public readonly serviceCode: CfnParametersCode;
 
-  constructor(scope: Construct, id: string, props?: StackProps) {
+  constructor(scope: Construct, id: string, props: ServiceStackProps) {
     super(scope, id, props);
 
     this.serviceCode = Code.fromCfnParameters();
@@ -16,12 +20,12 @@ export class ServiceStack extends Stack {
       runtime: Runtime.NODEJS_20_X,
       handler: 'src/lambda.handler',
       code: this.serviceCode,
-      functionName: 'ServiceLambda'
+      functionName: `ServiceLambda${props.stackName}`
     });
 
     new HttpApi(this, 'ServiceApi', {
       defaultIntegration: new HttpLambdaIntegration('HttpLambdaIntegration', lambda),
-      apiName: 'MyService'
+      apiName: `MyService${props.stackName}`
     });
   }
 }
